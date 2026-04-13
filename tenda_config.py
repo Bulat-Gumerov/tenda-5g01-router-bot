@@ -16,10 +16,6 @@ ROUTER_IP = os.getenv("ROUTER_IP", "192.168.1.1")
 ROUTER_PWD = os.getenv("ROUTER_PWD")
 DEFAULT_TIMEOUT = 10
 
-if not ROUTER_PWD:
-    print("\033[1;31m[!] Error: ROUTER_PWD not found in .env file.\033[0m")
-    sys.exit(1)
-
 
 def parse_multi_json(text):
     """
@@ -54,6 +50,9 @@ def get_tenda_session():
     """
     Log in to the Tenda router and retrieve the session token (stok).
     """
+    if not ROUTER_PWD:
+        print("\033[1;31m[!] Error: ROUTER_PWD not found in environment.\033[0m")
+        return None, None
     # Session to persist cookies
     session = requests.Session()
     session.headers.update(
@@ -85,6 +84,7 @@ def get_tenda_session():
 
         if login_data.get("errCode") != 0:
             print(f"Login failed: {login_data}")
+            session.close()
             return None, None
 
         # Step 2: Get stokCfg
@@ -101,10 +101,16 @@ def get_tenda_session():
             # Fallback to login response if stokCfg didn't return it
             stok = login_data.get("stok")
 
+        if not stok:
+            session.close()
+            return None, None
+
         return session, stok
 
     except Exception as e:
         print(f"Error during login: {e}")
+        if "session" in locals():
+            session.close()
         return None, None
 
 

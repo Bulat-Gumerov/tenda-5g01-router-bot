@@ -35,6 +35,9 @@ def ensure_4g_mode():
     else:
         print(f"[*] Mode is {current_mode}. No action taken.")
 
+    # Close the session
+    session.close()
+
 
 if __name__ == "__main__":
     try:

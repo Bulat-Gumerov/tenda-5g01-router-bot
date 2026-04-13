@@ -34,7 +34,7 @@ def get_tenda_status():
     internet_status = sim_info.get("internetStatus", "Unknown")
 
     # Visual status indicator
-    status_color = "\033[1;32m" if internet_status == "connected" else "\033[1;31m"
+    status_color = "\033[1;32m" if internet_status.lower() == "connected" else "\033[1;31m"
 
     print("\n" + "─" * 40)
     print("\033[1;36mTENDA ROUTER STATUS REPORT\033[0m")
@@ -43,6 +43,9 @@ def get_tenda_status():
     print(f" \033[1;37mAccess Band:\033[0m      {access_band}")
     print(f" \033[1;37mInternet Status:\033[0m  {status_color}{internet_status.upper()}\033[0m")
     print("─" * 40 + "\n")
+
+    # Close the session
+    session.close()
 
 
 if __name__ == "__main__":

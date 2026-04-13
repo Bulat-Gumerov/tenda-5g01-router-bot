@@ -39,15 +39,16 @@ def measure_speed(url, duration=5):
     try:
         log(f"Starting speed test against {url}...", "BLUE")
         start_time = time.time()
-        response = requests.get(url, stream=True, timeout=10)
-        total_bytes = 0
+        with requests.get(url, stream=True, timeout=10) as response:
+            response.raise_for_status()
+            total_bytes = 0
 
-        # Stream chunks for the specified duration
-        for chunk in response.iter_content(chunk_size=16384):
-            if chunk:
-                total_bytes += len(chunk)
-            if time.time() - start_time > duration:
-                break
+            # Stream chunks for the specified duration
+            for chunk in response.iter_content(chunk_size=16384):
+                if chunk:
+                    total_bytes += len(chunk)
+                if time.time() - start_time > duration:
+                    break
 
         end_time = time.time()
         elapsed = end_time - start_time
@@ -108,6 +109,8 @@ def stay_on_5g_loop():
                     current_forced_mode = None
                     retry_count = 0
                     next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
+
+                session.close()
             else:
                 log("Authentication failed during recovery. Retrying in 5 mins.", "RED")
                 time.sleep(300)
@@ -159,6 +162,8 @@ def stay_on_5g_loop():
                     "GREEN",
                 )
                 next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
+
+            session.close()
 
         # Sleep to avoid CPU spin
         time.sleep(10)
