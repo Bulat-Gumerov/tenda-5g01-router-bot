@@ -1,0 +1,78 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1776090786778,
+  "projectRoot": "/Users/user/work/tenda",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Python",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "pyproject.toml"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": "pytest",
+    "lintCommand": "ruff check",
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "__pycache__": {
+      "path": "__pycache__",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1776090786764,
+      "keyFiles": [
+        "tenda_config.cpython-311.pyc"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "pyproject.toml",
+      "accessCount": 1,
+      "lastAccessed": 1776091141953,
+      "type": "file"
+    },
+    {
+      "path": "tenda_stay_on_5g.py",
+      "accessCount": 1,
+      "lastAccessed": 1776091142005,
+      "type": "file"
+    },
+    {
+      "path": "tenda_status.py",
+      "accessCount": 1,
+      "lastAccessed": 1776091142057,
+      "type": "file"
+    },
+    {
+      "path": "tenda_config.py",
+      "accessCount": 1,
+      "lastAccessed": 1776091142111,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

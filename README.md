@@ -24,12 +24,14 @@ A collection of Python scripts to monitor and manage **Tenda 5G01** 5G routers v
    ```bash
    uv sync
    ```
-3. Create a `.env` file in the project root:
-   ```env
-   ROUTER_IP=192.168.1.1
-   ROUTER_PWD=your_router_password
-   SPEED_TEST_URL=http://speedtest.sin1.sg.leaseweb.net/10mb.bin
+3. Create your environment file from the example:
+   ```bash
+   cp .env.example .env
    ```
+4. Edit `.env` for your router:
+   - `ROUTER_IP` and `ROUTER_PWD` are required.
+   - `SPEED_TEST_URL` is optional.
+   - `APN_PROFILES_JSON` or `TENDA_CONFIG_PATH` can be used to override APN profiles.
 
 ## 🚀 Usage
 

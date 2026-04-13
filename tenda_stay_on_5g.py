@@ -87,31 +87,34 @@ def stay_on_5g_loop():
             log("4G fallback period expired. Attempting to switch back to 5G...", "YELLOW")
             session, stok = get_tenda_session()
             if session and stok:
-                set_network_mode(session, stok, "5g")
-                log("Switching to 5G mode. Waiting 30s for sync...", "BLUE")
-                time.sleep(30)
+                try:
+                    set_network_mode(session, stok, "5g")
+                    log("Switching to 5G mode. Waiting 30s for sync...", "BLUE")
+                    time.sleep(30)
 
-                # Check if it's actually working
-                speed = measure_speed(SPEED_TEST_URL)
-                if speed < SPEED_THRESHOLD_MBPS:
-                    retry_count += 1
-                    wait_mins = INITIAL_4G_DURATION_MINUTES * (2 ** (retry_count - 1))
-                    log(
-                        f"5G performance still poor ({speed:.2f} Mbps). "
-                        f"Backing off for {wait_mins} mins.",
-                        "RED",
-                    )
-                    set_network_mode(session, stok, "4g")
-                    current_forced_mode = "4g"
-                    mode_expiry = now + timedelta(minutes=wait_mins)
-                else:
-                    log("5G is stable. Resetting backoff counter.", "GREEN")
-                    current_forced_mode = None
-                    retry_count = 0
-                    next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
-
-                session.close()
+                    # Check if it's actually working
+                    speed = measure_speed(SPEED_TEST_URL)
+                    if speed < SPEED_THRESHOLD_MBPS:
+                        retry_count += 1
+                        wait_mins = INITIAL_4G_DURATION_MINUTES * (2 ** (retry_count - 1))
+                        log(
+                            f"5G performance still poor ({speed:.2f} Mbps). "
+                            f"Backing off for {wait_mins} mins.",
+                            "RED",
+                        )
+                        set_network_mode(session, stok, "4g")
+                        current_forced_mode = "4g"
+                        mode_expiry = now + timedelta(minutes=wait_mins)
+                    else:
+                        log("5G is stable. Resetting backoff counter.", "GREEN")
+                        current_forced_mode = None
+                        retry_count = 0
+                        next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
+                finally:
+                    session.close()
             else:
+                if session:
+                    session.close()
                 log("Authentication failed during recovery. Retrying in 5 mins.", "RED")
                 time.sleep(300)
             continue
@@ -120,6 +123,8 @@ def stay_on_5g_loop():
         if current_forced_mode is None and now >= next_check_time:
             session, stok = get_tenda_session()
             if not session or not stok:
+                if session:
+                    session.close()
                 log("Authentication failed. Retrying in 1 min.", "RED")
                 time.sleep(60)
                 continue

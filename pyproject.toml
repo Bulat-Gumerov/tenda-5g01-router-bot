@@ -5,8 +5,8 @@ description = "Tenda 5G01 AX1800 5G NR Router Automation Tools"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "requests",
-    "python-dotenv",
+    "requests>=2.32",
+    "python-dotenv>=1.0",
 ]
 
 [dependency-groups]

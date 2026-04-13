@@ -12,11 +12,11 @@ def get_tenda_status():
     # Authenticate and get session
     session, stok = get_tenda_session()
 
-    if not session or not stok:
-        print("\033[1;31m[!] Authentication Failed.\033[0m")
-        return
-
     try:
+        if not session or not stok:
+            print("\033[1;31m[!] Authentication Failed.\033[0m")
+            return
+
         data = get_tenda_status_data(session, stok)
         if not data:
             print("\033[1;31m[!] Error: Could not retrieve or parse status data.\033[0m")
@@ -46,7 +46,8 @@ def get_tenda_status():
         print("─" * 40 + "\n")
     finally:
         # Close the session
-        session.close()
+        if session:
+            session.close()
 
 
 if __name__ == "__main__":

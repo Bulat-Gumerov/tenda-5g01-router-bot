@@ -15,6 +15,49 @@ load_dotenv()
 ROUTER_IP = os.getenv("ROUTER_IP", "192.168.1.1")
 ROUTER_PWD = os.getenv("ROUTER_PWD")
 DEFAULT_TIMEOUT = 10
+DEFAULT_APN_PROFILES = [
+    {
+        "profileName": "INTERNET",
+        "apn": "internet",
+        "simUser": "internet",
+        "simPwd": "internet",
+        "pdpType": "IPv4v6",
+        "authType": "PAP",
+        "isSys": "true",
+        "isDefault": "true",
+    }
+]
+
+
+def load_apn_profiles():
+    """
+    Load APN profiles from environment or config file.
+    Falls back to DEFAULT_APN_PROFILES when no valid override is provided.
+    """
+    raw_profiles = os.getenv("APN_PROFILES_JSON")
+    config_path = os.getenv("TENDA_CONFIG_PATH")
+
+    if raw_profiles:
+        try:
+            profiles = json.loads(raw_profiles)
+            if isinstance(profiles, list) and profiles:
+                return profiles
+            print("APN_PROFILES_JSON must be a non-empty JSON list. Using defaults.")
+        except json.JSONDecodeError as e:
+            print(f"Failed to parse APN_PROFILES_JSON: {e}. Using defaults.")
+
+    if config_path:
+        try:
+            with open(config_path, encoding="utf-8") as f:
+                config = json.load(f)
+            profiles = config.get("apnProfiles")
+            if isinstance(profiles, list) and profiles:
+                return profiles
+            print("TENDA_CONFIG_PATH missing non-empty 'apnProfiles' list. Using defaults.")
+        except Exception as e:
+            print(f"Failed to load TENDA_CONFIG_PATH config: {e}. Using defaults.")
+
+    return DEFAULT_APN_PROFILES
 
 
 def parse_multi_json(text):
@@ -145,49 +188,7 @@ def set_network_mode(session, stok, mode):
     """
     Switch the network mode between 4G and 5G NSA.
     """
-    # Profile list provided by the user
-    profiles = [
-        {
-            "profileName": "INTERNET",
-            "apn": "internet",
-            "simUser": "true",
-            "simPwd": "true",
-            "pdpType": "IPv4v6",
-            "authType": "PAP",
-            "isSys": "true",
-            "isDefault": "true",
-        },
-        {
-            "profileName": "TRUE-H INTERNET",
-            "apn": "internet",
-            "simUser": "true",
-            "simPwd": "true",
-            "pdpType": "IPv4",
-            "authType": "NONE",
-            "isSys": "false",
-            "isDefault": "true",
-        },
-        {
-            "profileName": "TRUE-H INTERNET 2",
-            "apn": "internet",
-            "simUser": "",
-            "simPwd": "",
-            "pdpType": "IPv4v6",
-            "authType": "NONE",
-            "isSys": "false",
-            "isDefault": "true",
-        },
-        {
-            "profileName": "TRUE",
-            "apn": "internet",
-            "simUser": "True",
-            "simPwd": "True",
-            "pdpType": "IPv4v6",
-            "authType": "CHAP",
-            "isSys": "false",
-            "isDefault": "true",
-        },
-    ]
+    profiles = load_apn_profiles()
 
     # dataOptions: 4g = 2, 5g NSA = 1
     mode = mode.lower()

@@ -190,8 +190,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "python-dotenv" },
-    { name = "requests" },
+    { name = "python-dotenv", specifier = ">=1.0" },
+    { name = "requests", specifier = ">=2.32" },
 ]
 
 [package.metadata.requires-dev]
