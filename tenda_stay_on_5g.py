@@ -151,7 +151,9 @@ def stay_on_5g_loop():
                         reason = f"Speed dropped below threshold ({speed:.2f} Mbps)"
 
                 if trigger_fallback:
-                    log(f"{reason}. Forcing 4G for {INITIAL_4G_DURATION_MINUTES} minutes.", "YELLOW")
+                    log(
+                        f"{reason}. Forcing 4G for {INITIAL_4G_DURATION_MINUTES} minutes.", "YELLOW"
+                    )
                     set_network_mode(session, stok, "4g")
                     current_forced_mode = "4g"
                     mode_expiry = now + timedelta(minutes=INITIAL_4G_DURATION_MINUTES)
