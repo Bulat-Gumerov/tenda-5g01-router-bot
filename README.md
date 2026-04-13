@@ -60,6 +60,21 @@ uv run tenda_stay_on_5g.py
 ```
 *Note: You can configure thresholds like `SPEED_THRESHOLD_MBPS` directly in the script or via environment variables.*
 
+## 🛠 Development
+
+This project uses [Ruff](https://github.com/astral-sh/ruff) for linting and formatting.
+
+To check for issues:
+```bash
+uv run ruff check .
+```
+
+To automatically fix issues and format code:
+```bash
+uv run ruff check --fix .
+uv run ruff format .
+```
+
 ## 📁 File Structure
 
 - `tenda_config.py`: Core logic for API interaction and authentication.

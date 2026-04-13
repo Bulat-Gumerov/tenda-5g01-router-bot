@@ -1,20 +1,17 @@
-import time
 import sys
-from tenda_config import (
-    get_tenda_session, 
-    get_tenda_status_data,
-    ROUTER_IP
-)
+
+from tenda_config import ROUTER_IP, get_tenda_session, get_tenda_status_data
+
 
 def get_tenda_status():
     """
     Fetch the status of the Tenda router and print mobile network details.
     """
     print(f"\033[1;34m[*] Connecting to Tenda Router at {ROUTER_IP}...\033[0m")
-    
+
     # Authenticate and get session
     session, stok = get_tenda_session()
-    
+
     if not session or not stok:
         print("\033[1;31m[!] Authentication Failed.\033[0m")
         return
@@ -40,12 +37,13 @@ def get_tenda_status():
     status_color = "\033[1;32m" if internet_status == "connected" else "\033[1;31m"
 
     print("\n" + "─" * 40)
-    print(f"\033[1;36mTENDA ROUTER STATUS REPORT\033[0m")
+    print("\033[1;36mTENDA ROUTER STATUS REPORT\033[0m")
     print("─" * 40)
     print(f" \033[1;37mNetwork Type:\033[0m     {mobile_net}")
     print(f" \033[1;37mAccess Band:\033[0m      {access_band}")
     print(f" \033[1;37mInternet Status:\033[0m  {status_color}{internet_status.upper()}\033[0m")
     print("─" * 40 + "\n")
+
 
 if __name__ == "__main__":
     try:

@@ -1,13 +1,9 @@
-import time
-import sys
 import os
+import sys
+import time
 from datetime import datetime, timedelta
-from tenda_config import (
-    get_tenda_session, 
-    get_tenda_status_data, 
-    set_network_mode, 
-    ROUTER_IP
-)
+
+from tenda_config import ROUTER_IP, get_tenda_session, get_tenda_status_data, set_network_mode
 
 # Configuration from .env and defaults
 SPEED_TEST_URL = os.getenv("SPEED_TEST_URL", "https://sin-speed.hetzner.com/100MB.bin")
@@ -23,13 +19,15 @@ CLR = {
     "RED": "\033[1;31m",
     "CYAN": "\033[1;36m",
     "RESET": "\033[0m",
-    "GRAY": "\033[1;90m"
+    "GRAY": "\033[1;90m",
 }
+
 
 def log(msg, level="INFO"):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     color = CLR.get(level, CLR["RESET"])
     print(f"{CLR['GRAY']}[{timestamp}]{CLR['RESET']} {color}[{level}]{CLR['RESET']} {msg}")
+
 
 def measure_speed(url, duration=5):
     """
@@ -37,22 +35,23 @@ def measure_speed(url, duration=5):
     Streams the content for 'duration' seconds to estimate speed without downloading large files.
     """
     import requests
+
     try:
         log(f"Starting speed test against {url}...", "BLUE")
         start_time = time.time()
         response = requests.get(url, stream=True, timeout=10)
         total_bytes = 0
-        
+
         # Stream chunks for the specified duration
         for chunk in response.iter_content(chunk_size=16384):
             if chunk:
                 total_bytes += len(chunk)
             if time.time() - start_time > duration:
                 break
-                
+
         end_time = time.time()
         elapsed = end_time - start_time
-        
+
         # Calculate Mbps
         mbps = (total_bytes * 8) / (elapsed * 1024 * 1024)
         log(f"Measured speed: {mbps:.2f} Mbps", "GREEN")
@@ -61,23 +60,27 @@ def measure_speed(url, duration=5):
         log(f"Speed test failed: {e}", "RED")
         return 0
 
+
 def stay_on_5g_loop():
     """
     Main control loop for network management.
     """
     retry_count = 0
     next_check_time = datetime.now()
-    
+
     # State tracking
-    current_forced_mode = None # "4g" or None (running normally on 5G)
+    current_forced_mode = None  # "4g" or None (running normally on 5G)
     mode_expiry = None
 
     log(f"Stay on 5G script started. Router: {ROUTER_IP}", "CYAN")
-    log(f"Threshold: {SPEED_THRESHOLD_MBPS} Mbps | Interval: {CHECK_INTERVAL_SECONDS/60} mins", "CYAN")
+    log(
+        f"Threshold: {SPEED_THRESHOLD_MBPS} Mbps | Interval: {CHECK_INTERVAL_SECONDS / 60} mins",
+        "CYAN",
+    )
 
     while True:
         now = datetime.now()
-        
+
         # 1. Handle Recovery from 4G
         if current_forced_mode == "4g" and now >= mode_expiry:
             log("4G fallback period expired. Attempting to switch back to 5G...", "YELLOW")
@@ -86,13 +89,17 @@ def stay_on_5g_loop():
                 set_network_mode(session, stok, "5g")
                 log("Switching to 5G mode. Waiting 30s for sync...", "BLUE")
                 time.sleep(30)
-                
+
                 # Check if it's actually working
                 speed = measure_speed(SPEED_TEST_URL)
                 if speed < SPEED_THRESHOLD_MBPS:
                     retry_count += 1
                     wait_mins = INITIAL_4G_DURATION_MINUTES * (2 ** (retry_count - 1))
-                    log(f"5G performance still poor ({speed:.2f} Mbps). Backing off for {wait_mins} mins.", "RED")
+                    log(
+                        f"5G performance still poor ({speed:.2f} Mbps). "
+                        f"Backing off for {wait_mins} mins.",
+                        "RED",
+                    )
                     set_network_mode(session, stok, "4g")
                     current_forced_mode = "4g"
                     mode_expiry = now + timedelta(minutes=wait_mins)
@@ -113,21 +120,21 @@ def stay_on_5g_loop():
                 log("Authentication failed. Retrying in 1 min.", "RED")
                 time.sleep(60)
                 continue
-                
+
             data = get_tenda_status_data(session, stok)
             if not data:
                 log("Failed to get router status.", "RED")
                 time.sleep(60)
                 continue
-                
+
             sim_info = data.get("simInfo", {})
             mobile_net = sim_info.get("mobileNet", "Unknown")
-            
+
             log(f"Network Status: {mobile_net}", "BLUE")
-            
+
             trigger_fallback = False
             reason = ""
-            
+
             # Check for 3G
             if "3G" in mobile_net.upper():
                 trigger_fallback = True
@@ -138,7 +145,7 @@ def stay_on_5g_loop():
                 if speed < SPEED_THRESHOLD_MBPS:
                     trigger_fallback = True
                     reason = f"Speed dropped below threshold ({speed:.2f} Mbps)"
-            
+
             if trigger_fallback:
                 log(f"{reason}. Forcing 4G for {INITIAL_4G_DURATION_MINUTES} minutes.", "YELLOW")
                 set_network_mode(session, stok, "4g")
@@ -146,11 +153,16 @@ def stay_on_5g_loop():
                 mode_expiry = now + timedelta(minutes=INITIAL_4G_DURATION_MINUTES)
                 retry_count = 1
             else:
-                log(f"5G is performing well. Next check at { (now + timedelta(seconds=CHECK_INTERVAL_SECONDS)).strftime('%H:%M:%S') }", "GREEN")
+                log(
+                    f"5G is performing well. Next check at "
+                    f"{(now + timedelta(seconds=CHECK_INTERVAL_SECONDS)).strftime('%H:%M:%S')}",
+                    "GREEN",
+                )
                 next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
 
         # Sleep to avoid CPU spin
         time.sleep(10)
+
 
 if __name__ == "__main__":
     try:
