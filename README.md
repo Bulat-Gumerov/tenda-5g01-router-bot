@@ -70,4 +70,3 @@ uv run tenda_stay_on_5g.py
 
 ## ⚠️ Disclaimer
 These scripts interact with the router's internal API. Specifically tested on the **Tenda 5G01** AX1800 5G NR Router. Use at your own risk.
-# tenda-5g01-router-bot
