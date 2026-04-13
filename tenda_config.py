@@ -190,7 +190,13 @@ def set_network_mode(session, stok, mode):
     ]
 
     # dataOptions: 4g = 2, 5g NSA = 1
-    data_options = 2 if mode == "4g" else 1
+    mode = mode.lower()
+    if mode == "4g":
+        data_options = 2
+    elif mode == "5g":
+        data_options = 1
+    else:
+        raise ValueError(f"Invalid mode: {mode}. Must be '4g' or '5g'.")
 
     payload = {
         "simWan": {
@@ -235,6 +241,9 @@ if __name__ == "__main__":
     # Get session and token
     sess, token = get_tenda_session()
     if sess and token:
-        set_network_mode(sess, token, target_mode)
+        try:
+            set_network_mode(sess, token, target_mode)
+        finally:
+            sess.close()
     else:
         print("Failed to authenticate with the router.")

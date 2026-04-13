@@ -15,28 +15,27 @@ def ensure_4g_mode():
         print("\033[1;31m[!] Authentication Failed.\033[0m")
         return
 
-    # 2. Get Current Status
-    data = get_tenda_status_data(session, stok)
-    if not data or "simInfo" not in data:
-        print("\033[1;31m[!] Error: Could not check current mode.\033[0m")
-        return
+    try:
+        # 2. Get Current Status
+        data = get_tenda_status_data(session, stok)
+        if not data or "simInfo" not in data:
+            print("\033[1;31m[!] Error: Could not check current mode.\033[0m")
+            return
 
-    sim_info = data["simInfo"]
-    current_mode = sim_info.get("mobileNet", "Unknown")
+        sim_info = data["simInfo"]
+        current_mode = sim_info.get("mobileNet", "Unknown")
 
-    print(f"[*] Current mode detected: \033[1;37m{current_mode}\033[0m")
+        print(f"[*] Current mode detected: \033[1;37m{current_mode}\033[0m")
 
-    # 3. Decision Logic
-    if current_mode == "3G":
-        print("\033[1;33m[!] 3G detected. Switching to 4G mode...\033[0m")
-        set_network_mode(session, stok, "4g")
-    elif current_mode == "4G":
-        print("\033[1;32m[✓] Already in 4G mode.\033[0m")
-    else:
-        print(f"[*] Mode is {current_mode}. No action taken.")
-
-    # Close the session
-    session.close()
+        # 3. Decision Logic
+        if current_mode == "4G":
+            print("\033[1;32m[✓] Already in 4G mode.\033[0m")
+        else:
+            print(f"\033[1;33m[!] {current_mode} detected. Switching to 4G mode...\033[0m")
+            set_network_mode(session, stok, "4g")
+    finally:
+        # Close the session
+        session.close()
 
 
 if __name__ == "__main__":

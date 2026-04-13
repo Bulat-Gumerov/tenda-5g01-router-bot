@@ -124,46 +124,47 @@ def stay_on_5g_loop():
                 time.sleep(60)
                 continue
 
-            data = get_tenda_status_data(session, stok)
-            if not data:
-                log("Failed to get router status.", "RED")
-                time.sleep(60)
-                continue
+            try:
+                data = get_tenda_status_data(session, stok)
+                if not data:
+                    log("Failed to get router status.", "RED")
+                    time.sleep(60)
+                    continue
 
-            sim_info = data.get("simInfo", {})
-            mobile_net = sim_info.get("mobileNet", "Unknown")
+                sim_info = data.get("simInfo", {})
+                mobile_net = sim_info.get("mobileNet", "Unknown")
 
-            log(f"Network Status: {mobile_net}", "BLUE")
+                log(f"Network Status: {mobile_net}", "BLUE")
 
-            trigger_fallback = False
-            reason = ""
+                trigger_fallback = False
+                reason = ""
 
-            # Check for 3G
-            if "3G" in mobile_net.upper():
-                trigger_fallback = True
-                reason = "Detected 3G mode"
-            else:
-                # Check Speed
-                speed = measure_speed(SPEED_TEST_URL)
-                if speed < SPEED_THRESHOLD_MBPS:
+                # Check for 3G
+                if "3G" in mobile_net.upper():
                     trigger_fallback = True
-                    reason = f"Speed dropped below threshold ({speed:.2f} Mbps)"
+                    reason = "Detected 3G mode"
+                else:
+                    # Check Speed
+                    speed = measure_speed(SPEED_TEST_URL)
+                    if speed < SPEED_THRESHOLD_MBPS:
+                        trigger_fallback = True
+                        reason = f"Speed dropped below threshold ({speed:.2f} Mbps)"
 
-            if trigger_fallback:
-                log(f"{reason}. Forcing 4G for {INITIAL_4G_DURATION_MINUTES} minutes.", "YELLOW")
-                set_network_mode(session, stok, "4g")
-                current_forced_mode = "4g"
-                mode_expiry = now + timedelta(minutes=INITIAL_4G_DURATION_MINUTES)
-                retry_count = 1
-            else:
-                log(
-                    f"5G is performing well. Next check at "
-                    f"{(now + timedelta(seconds=CHECK_INTERVAL_SECONDS)).strftime('%H:%M:%S')}",
-                    "GREEN",
-                )
-                next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
-
-            session.close()
+                if trigger_fallback:
+                    log(f"{reason}. Forcing 4G for {INITIAL_4G_DURATION_MINUTES} minutes.", "YELLOW")
+                    set_network_mode(session, stok, "4g")
+                    current_forced_mode = "4g"
+                    mode_expiry = now + timedelta(minutes=INITIAL_4G_DURATION_MINUTES)
+                    retry_count = 1
+                else:
+                    log(
+                        f"5G is performing well. Next check at "
+                        f"{(now + timedelta(seconds=CHECK_INTERVAL_SECONDS)).strftime('%H:%M:%S')}",
+                        "GREEN",
+                    )
+                    next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
+            finally:
+                session.close()
 
         # Sleep to avoid CPU spin
         time.sleep(10)
