@@ -10,6 +10,7 @@ SPEED_TEST_URL = os.getenv("SPEED_TEST_URL", "https://nbg1-speed.hetzner.com/100
 SPEED_THRESHOLD_MBPS = 2.0
 CHECK_INTERVAL_SECONDS = 3600  # 1 hour
 INITIAL_4G_DURATION_MINUTES = 20
+SPEED_TEST_RETRY_SECONDS = 300  # 5 minutes
 
 # ANSI Colors for logging
 CLR = {
@@ -174,13 +175,22 @@ def stay_on_5g_loop():
                         reason = f"Speed dropped below threshold ({speed:.2f} Mbps)"
 
                 if trigger_fallback:
-                    log(
-                        f"{reason}. Forcing 4G for {INITIAL_4G_DURATION_MINUTES} minutes.", "YELLOW"
-                    )
                     if set_network_mode(session, stok, "4g"):
+                        log(
+                            f"{reason}. Forcing 4G for {INITIAL_4G_DURATION_MINUTES} minutes.",
+                            "YELLOW",
+                        )
                         current_forced_mode = "4g"
                         mode_expiry = now + timedelta(minutes=INITIAL_4G_DURATION_MINUTES)
                         retry_count = 1
+                    else:
+                        retry_count += 1
+                        backoff_sec = min(2**retry_count * 10, 600)
+                        next_check_time = now + timedelta(seconds=backoff_sec)
+                        log(
+                            f"Failed to switch to 4G mode. Backing off for {backoff_sec}s.",
+                            "RED",
+                        )
                 elif speed is not None:
                     log(
                         f"{mobile_net} is performing well. Next check at "
@@ -190,10 +200,11 @@ def stay_on_5g_loop():
                     next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
                 else:
                     log(
-                        "Speed measurement skipped or unavailable. Will retry check later.",
+                        "Speed measurement skipped or unavailable. "
+                        f"Retrying in {SPEED_TEST_RETRY_SECONDS / 60} mins.",
                         "YELLOW",
                     )
-                    # We don't update next_check_time, so it will retry soon
+                    next_check_time = now + timedelta(seconds=SPEED_TEST_RETRY_SECONDS)
             finally:
                 session.close()
 
