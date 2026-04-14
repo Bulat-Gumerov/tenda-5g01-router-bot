@@ -23,16 +23,19 @@ def get_tenda_status():
             return
 
         sim_info = data.get("simInfo")
-        if not sim_info:
-            print("\033[1;33m[!] Warning: 'simInfo' section not found.\033[0m")
-            found_keys = sorted(data.keys())
-            print(f"\033[1;90m[*] Modules found: {', '.join(found_keys)}\033[0m")
-            return
+        if not isinstance(sim_info, dict):
+            print("\033[1;33m[!] Warning: 'simInfo' section not found or invalid.\033[0m")
+            sim_info = {}
 
-        # Extract fields
-        mobile_net = sim_info.get("mobileNet", "Unknown")
-        access_band = sim_info.get("accessBand", "Unknown")
-        internet_status = sim_info.get("internetStatus", "Unknown")
+        # Extract fields defensively
+        raw_net = sim_info.get("mobileNet")
+        mobile_net = raw_net if isinstance(raw_net, str) else "Unknown"
+
+        raw_band = sim_info.get("accessBand")
+        access_band = raw_band if isinstance(raw_band, str) else "Unknown"
+
+        raw_status = sim_info.get("internetStatus")
+        internet_status = raw_status if isinstance(raw_status, str) else "Disconnected"
 
         # Visual status indicator
         status_color = "\033[1;32m" if internet_status.lower() == "connected" else "\033[1;31m"

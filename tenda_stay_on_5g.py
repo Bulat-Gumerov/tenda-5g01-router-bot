@@ -26,7 +26,7 @@ CLR = {
 def log(msg, level="INFO"):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     color = CLR.get(level, CLR["RESET"])
-    print(f"{CLR['GRAY']}[{timestamp}]{CLR['RESET']} {color}[{level}]{CLR['RESET']} {msg}")
+    print(f"{CLR['GRAY']}[{timestamp}]{CLR['RESET']} {color}[{level}] {msg}{CLR['RESET']}")
 
 
 def measure_speed(url, duration=5):
@@ -88,28 +88,28 @@ def stay_on_5g_loop():
             session, stok = get_tenda_session()
             if session and stok:
                 try:
-                    set_network_mode(session, stok, "5g")
-                    log("Switching to 5G mode. Waiting 30s for sync...", "BLUE")
-                    time.sleep(30)
+                    if set_network_mode(session, stok, "5g"):
+                        log("Switching to 5G mode. Waiting 30s for sync...", "BLUE")
+                        time.sleep(30)
 
-                    # Check if it's actually working
-                    speed = measure_speed(SPEED_TEST_URL)
-                    if speed < SPEED_THRESHOLD_MBPS:
-                        retry_count += 1
-                        wait_mins = INITIAL_4G_DURATION_MINUTES * (2 ** (retry_count - 1))
-                        log(
-                            f"5G performance still poor ({speed:.2f} Mbps). "
-                            f"Backing off for {wait_mins} mins.",
-                            "RED",
-                        )
-                        set_network_mode(session, stok, "4g")
-                        current_forced_mode = "4g"
-                        mode_expiry = now + timedelta(minutes=wait_mins)
-                    else:
-                        log("5G is stable. Resetting backoff counter.", "GREEN")
-                        current_forced_mode = None
-                        retry_count = 0
-                        next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
+                        # Check if it's actually working
+                        speed = measure_speed(SPEED_TEST_URL)
+                        if speed < SPEED_THRESHOLD_MBPS:
+                            retry_count += 1
+                            wait_mins = INITIAL_4G_DURATION_MINUTES * (2 ** (retry_count - 1))
+                            log(
+                                f"5G performance still poor ({speed:.2f} Mbps). "
+                                f"Backing off for {wait_mins} mins.",
+                                "RED",
+                            )
+                            if set_network_mode(session, stok, "4g"):
+                                current_forced_mode = "4g"
+                                mode_expiry = now + timedelta(minutes=wait_mins)
+                        else:
+                            log("5G is stable. Resetting backoff counter.", "GREEN")
+                            current_forced_mode = None
+                            retry_count = 0
+                            next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
                 finally:
                     session.close()
             else:
@@ -137,7 +137,7 @@ def stay_on_5g_loop():
                     continue
 
                 sim_info = data.get("simInfo", {})
-                mobile_net = sim_info.get("mobileNet", "Unknown")
+                mobile_net = str(sim_info.get("mobileNet") or "Unknown")
 
                 log(f"Network Status: {mobile_net}", "BLUE")
 
@@ -159,10 +159,10 @@ def stay_on_5g_loop():
                     log(
                         f"{reason}. Forcing 4G for {INITIAL_4G_DURATION_MINUTES} minutes.", "YELLOW"
                     )
-                    set_network_mode(session, stok, "4g")
-                    current_forced_mode = "4g"
-                    mode_expiry = now + timedelta(minutes=INITIAL_4G_DURATION_MINUTES)
-                    retry_count = 1
+                    if set_network_mode(session, stok, "4g"):
+                        current_forced_mode = "4g"
+                        mode_expiry = now + timedelta(minutes=INITIAL_4G_DURATION_MINUTES)
+                        retry_count = 1
                 else:
                     log(
                         f"5G is performing well. Next check at "

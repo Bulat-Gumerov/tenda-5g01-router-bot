@@ -178,6 +178,12 @@ def get_tenda_status_data(session, stok):
         result = {}
         for obj in json_objs:
             result.update(obj)
+
+        # Sanitize expected data modules (e.g., simInfo should not be null)
+        for module in ["simInfo", "simStatus", "systemCfg"]:
+            if module in result and not isinstance(result[module], dict):
+                result[module] = {}
+
         return result
     except Exception as e:
         print(f"Error fetching status data: {e}")
@@ -222,11 +228,14 @@ def set_network_mode(session, stok, mode):
 
         if result.get("errCode") == 0:
             print(f"Successfully applied {mode.upper()} settings.")
+            return True
         else:
             print(f"Router returned error: {result}")
+            return False
 
     except Exception as e:
         print(f"Error sending request: {e}")
+        return False
 
 
 if __name__ == "__main__":

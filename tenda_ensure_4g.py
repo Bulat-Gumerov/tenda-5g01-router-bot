@@ -18,12 +18,18 @@ def ensure_4g_mode():
     try:
         # 2. Get Current Status
         data = get_tenda_status_data(session, stok)
-        if not data or "simInfo" not in data:
+        if not data:
             print("\033[1;31m[!] Error: Could not check current mode.\033[0m")
             return
 
-        sim_info = data["simInfo"]
-        current_mode = sim_info.get("mobileNet", "Unknown")
+        sim_info = data.get("simInfo")
+        if not isinstance(sim_info, dict):
+            print("\033[1;31m[!] Error: Invalid or missing simInfo module.\033[0m")
+            return
+
+        # Defensive read of mobileNet
+        raw_mode = sim_info.get("mobileNet")
+        current_mode = raw_mode if isinstance(raw_mode, str) else "Unknown"
 
         print(f"[*] Current mode detected: \033[1;37m{current_mode}\033[0m")
 
@@ -32,7 +38,8 @@ def ensure_4g_mode():
             print("\033[1;32m[✓] Already in 4G mode.\033[0m")
         else:
             print(f"\033[1;33m[!] {current_mode} detected. Switching to 4G mode...\033[0m")
-            set_network_mode(session, stok, "4g")
+            if set_network_mode(session, stok, "4g"):
+                pass  # No subsequent state updates in this script
     finally:
         # Close the session
         session.close()
