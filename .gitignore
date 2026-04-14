@@ -1,0 +1,29 @@
+# Environment
+.env
+.venv/
+.python-version
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# UV / Managed
+# uv.lock  # Recommended to keep for apps, but uncomment if you want to ignore
+.ruff_cache/
+
+# System / IDE
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Oh my claude
+.omc/

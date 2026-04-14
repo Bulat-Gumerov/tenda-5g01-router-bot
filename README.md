@@ -24,12 +24,14 @@ A collection of Python scripts to monitor and manage **Tenda 5G01** 5G routers v
    ```bash
    uv sync
    ```
-3. Create a `.env` file in the project root:
-   ```env
-   ROUTER_IP=192.168.1.1
-   ROUTER_PWD=your_router_password
-   SPEED_TEST_URL=http://speedtest.sin1.sg.leaseweb.net/10mb.bin
+3. Create your environment file from the example:
+   ```bash
+   cp .env.example .env
    ```
+4. Edit `.env` for your router:
+   - `ROUTER_IP` and `ROUTER_PWD` are required.
+   - `SPEED_TEST_URL` is optional.
+   - `APN_PROFILES_JSON` or `TENDA_CONFIG_PATH` can be used to override APN profiles.
 
 ## 🚀 Usage
 
@@ -60,6 +62,26 @@ uv run tenda_stay_on_5g.py
 ```
 *Note: You can configure thresholds like `SPEED_THRESHOLD_MBPS` directly in the script or via environment variables.*
 
+## 🛠 Development
+
+This project uses [Ruff](https://github.com/astral-sh/ruff) for linting and [ty](https://github.com/astral-sh/ty) for type checking.
+
+To check for issues:
+```bash
+uvx ruff check .
+```
+
+To run type checking:
+```bash
+uvx ty check
+```
+
+To automatically fix issues and format code:
+```bash
+uvx ruff check --fix .
+uvx ruff format .
+```
+
 ## 📁 File Structure
 
 - `tenda_config.py`: Core logic for API interaction and authentication.
@@ -70,4 +92,3 @@ uv run tenda_stay_on_5g.py
 
 ## ⚠️ Disclaimer
 These scripts interact with the router's internal API. Specifically tested on the **Tenda 5G01** AX1800 5G NR Router. Use at your own risk.
-# tenda-5g01-router-bot

@@ -1,0 +1,27 @@
+[project]
+name = "tenda"
+version = "1.0.0"
+description = "Tenda 5G01 AX1800 5G NR Router Automation Tools"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.32",
+    "python-dotenv>=1.0",
+]
+
+[dependency-groups]
+dev = []
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "N"]
+ignore = []
+
+[tool.ty]
+
+[tool.uv]
+managed = true
+package = false
