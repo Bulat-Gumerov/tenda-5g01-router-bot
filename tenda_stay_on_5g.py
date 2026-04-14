@@ -83,7 +83,7 @@ def stay_on_5g_loop():
         now = datetime.now()
 
         # 1. Handle Recovery from 4G
-        if current_forced_mode == "4g" and now >= mode_expiry:
+        if current_forced_mode == "4g" and mode_expiry is not None and now >= mode_expiry:
             log("4G fallback period expired. Attempting to switch back to 5G...", "YELLOW")
             session, stok = get_tenda_session()
             if session and stok:

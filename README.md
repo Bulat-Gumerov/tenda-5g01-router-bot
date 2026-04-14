@@ -64,17 +64,22 @@ uv run tenda_stay_on_5g.py
 
 ## 🛠 Development
 
-This project uses [Ruff](https://github.com/astral-sh/ruff) for linting and formatting.
+This project uses [Ruff](https://github.com/astral-sh/ruff) for linting and [ty](https://github.com/astral-sh/ty) for type checking.
 
 To check for issues:
 ```bash
-uv run ruff check .
+uvx ruff check .
+```
+
+To run type checking:
+```bash
+uvx ty check
 ```
 
 To automatically fix issues and format code:
 ```bash
-uv run ruff check --fix .
-uv run ruff format .
+uvx ruff check --fix .
+uvx ruff format .
 ```
 
 ## 📁 File Structure
