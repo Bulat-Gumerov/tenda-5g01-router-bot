@@ -26,7 +26,7 @@ CLR = {
 def log(msg, level="INFO"):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     color = CLR.get(level, CLR["RESET"])
-    print(f"{CLR['GRAY']}[{timestamp}]{CLR['RESET']} {color}[{level}] {msg}{CLR['RESET']}")
+    print(f"{CLR['GRAY']}[{timestamp}]{CLR['RESET']} {color}{msg}{CLR['RESET']}")
 
 
 def measure_speed(url, duration=5):
@@ -59,7 +59,7 @@ def measure_speed(url, duration=5):
         return mbps
     except Exception as e:
         log(f"Speed test failed: {e}", "RED")
-        return 0
+        return None
 
 
 def stay_on_5g_loop():
@@ -94,7 +94,9 @@ def stay_on_5g_loop():
 
                         # Check if it's actually working
                         speed = measure_speed(SPEED_TEST_URL)
-                        if speed < SPEED_THRESHOLD_MBPS:
+                        if speed is None:
+                            log("Speed measurement unavailable. Skipping evaluation.", "YELLOW")
+                        elif speed < SPEED_THRESHOLD_MBPS:
                             retry_count += 1
                             wait_mins = INITIAL_4G_DURATION_MINUTES * (2 ** (retry_count - 1))
                             log(
@@ -105,6 +107,11 @@ def stay_on_5g_loop():
                             if set_network_mode(session, stok, "4g"):
                                 current_forced_mode = "4g"
                                 mode_expiry = now + timedelta(minutes=wait_mins)
+                            else:
+                                log("Rollback to 4G failed. Clearing backoff state.", "RED")
+                                current_forced_mode = None
+                                retry_count = 0
+                                mode_expiry = None
                         else:
                             log("5G is stable. Resetting backoff counter.", "GREEN")
                             current_forced_mode = None
@@ -163,13 +170,19 @@ def stay_on_5g_loop():
                         current_forced_mode = "4g"
                         mode_expiry = now + timedelta(minutes=INITIAL_4G_DURATION_MINUTES)
                         retry_count = 1
-                else:
+                elif speed is not None:
                     log(
-                        f"5G is performing well. Next check at "
+                        f"{mobile_net} is performing well. Next check at "
                         f"{(now + timedelta(seconds=CHECK_INTERVAL_SECONDS)).strftime('%H:%M:%S')}",
                         "GREEN",
                     )
                     next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
+                else:
+                    log(
+                        "Speed measurement skipped or unavailable. Will retry check later.",
+                        "YELLOW",
+                    )
+                    # We don't update next_check_time, so it will retry soon
             finally:
                 session.close()
 

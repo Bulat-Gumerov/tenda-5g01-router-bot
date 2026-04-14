@@ -32,7 +32,7 @@ DEFAULT_APN_PROFILES = [
 def load_apn_profiles():
     """
     Load APN profiles from environment or config file.
-    Falls back to DEFAULT_APN_PROFILES when no valid override is provided.
+    Raises ValueError if configuration is provided but invalid.
     """
     raw_profiles = os.getenv("APN_PROFILES_JSON")
     config_path = os.getenv("TENDA_CONFIG_PATH")
@@ -42,20 +42,22 @@ def load_apn_profiles():
             profiles = json.loads(raw_profiles)
             if isinstance(profiles, list) and profiles:
                 return profiles
-            print("APN_PROFILES_JSON must be a non-empty JSON list. Using defaults.")
+            raise ValueError("APN_PROFILES_JSON must be a non-empty JSON list.")
         except json.JSONDecodeError as e:
-            print(f"Failed to parse APN_PROFILES_JSON: {e}. Using defaults.")
+            raise ValueError(f"Failed to parse APN_PROFILES_JSON: {e}")
 
     if config_path:
+        if not os.path.exists(config_path):
+            raise ValueError(f"TENDA_CONFIG_PATH file not found: {config_path}")
         try:
             with open(config_path, encoding="utf-8") as f:
                 config = json.load(f)
             profiles = config.get("apnProfiles")
             if isinstance(profiles, list) and profiles:
                 return profiles
-            print("TENDA_CONFIG_PATH missing non-empty 'apnProfiles' list. Using defaults.")
+            raise ValueError(f"Config at {config_path} missing non-empty 'apnProfiles' list.")
         except Exception as e:
-            print(f"Failed to load TENDA_CONFIG_PATH config: {e}. Using defaults.")
+            raise ValueError(f"Failed to load TENDA_CONFIG_PATH config: {e}")
 
     return DEFAULT_APN_PROFILES
 
@@ -194,7 +196,11 @@ def set_network_mode(session, stok, mode):
     """
     Switch the network mode between 4G and 5G NSA.
     """
-    profiles = load_apn_profiles()
+    try:
+        profiles = load_apn_profiles()
+    except ValueError as e:
+        print(f"Configuration error: {e}")
+        return False
 
     # dataOptions: 4g = 2, 5g NSA = 1
     mode = mode.lower()
@@ -250,10 +256,13 @@ if __name__ == "__main__":
 
     # Get session and token
     sess, token = get_tenda_session()
-    if sess and token:
-        try:
-            set_network_mode(sess, token, target_mode)
-        finally:
-            sess.close()
-    else:
+    if not sess or not token:
         print("Failed to authenticate with the router.")
+        sys.exit(1)
+
+    try:
+        success = set_network_mode(sess, token, target_mode)
+        if not success:
+            sys.exit(2)
+    finally:
+        sess.close()
