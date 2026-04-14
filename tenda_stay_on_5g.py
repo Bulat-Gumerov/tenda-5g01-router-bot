@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from tenda_config import ROUTER_IP, get_tenda_session, get_tenda_status_data, set_network_mode
 
 # Configuration from .env and defaults
-SPEED_TEST_URL = os.getenv("SPEED_TEST_URL", "https://sin-speed.hetzner.com/100MB.bin")
+SPEED_TEST_URL = os.getenv("SPEED_TEST_URL", "https://nbg1-speed.hetzner.com/100MB.bin")
 SPEED_THRESHOLD_MBPS = 2.0
 CHECK_INTERVAL_SECONDS = 3600  # 1 hour
 INITIAL_4G_DURATION_MINUTES = 20
