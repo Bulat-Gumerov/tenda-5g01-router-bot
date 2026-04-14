@@ -95,7 +95,11 @@ def stay_on_5g_loop():
                         # Check if it's actually working
                         speed = measure_speed(SPEED_TEST_URL)
                         if speed is None:
-                            log("Speed measurement unavailable. Skipping evaluation.", "YELLOW")
+                            log("Speed measurement unavailable. Resuming monitoring.", "YELLOW")
+                            current_forced_mode = None
+                            retry_count = 0
+                            mode_expiry = None
+                            next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
                         elif speed < SPEED_THRESHOLD_MBPS:
                             retry_count += 1
                             wait_mins = INITIAL_4G_DURATION_MINUTES * (2 ** (retry_count - 1))
@@ -112,11 +116,18 @@ def stay_on_5g_loop():
                                 current_forced_mode = None
                                 retry_count = 0
                                 mode_expiry = None
+                                next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
                         else:
                             log("5G is stable. Resetting backoff counter.", "GREEN")
                             current_forced_mode = None
                             retry_count = 0
                             next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
+                    else:
+                        log("Failed to switch back to 5G. Resuming normal monitoring.", "RED")
+                        current_forced_mode = None
+                        retry_count = 0
+                        mode_expiry = None
+                        next_check_time = now + timedelta(seconds=CHECK_INTERVAL_SECONDS)
                 finally:
                     session.close()
             else:
@@ -158,7 +169,7 @@ def stay_on_5g_loop():
                 else:
                     # Check Speed
                     speed = measure_speed(SPEED_TEST_URL)
-                    if speed < SPEED_THRESHOLD_MBPS:
+                    if speed is not None and speed < SPEED_THRESHOLD_MBPS:
                         trigger_fallback = True
                         reason = f"Speed dropped below threshold ({speed:.2f} Mbps)"
 
