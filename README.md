@@ -62,6 +62,30 @@ uv run tenda_stay_on_5g.py
 ```
 *Note: You can configure thresholds like `SPEED_THRESHOLD_MBPS` directly in the script or via environment variables.*
 
+## 🐳 Docker Compose (5G Monitor)
+
+Run `tenda_stay_on_5g.py` as a hardened, long-running container on a remote monitoring server, such as Raspberry Pi SBC.
+
+### Build
+```bash
+docker compose build --no-cache
+```
+
+### Start
+```bash
+docker compose up -d
+```
+
+### Follow Logs
+```bash
+docker compose logs -f --tail=200
+```
+
+### Stop
+```bash
+docker compose down
+```
+
 ## 🛠 Development
 
 This project uses [Ruff](https://github.com/astral-sh/ruff) for linting and [ty](https://github.com/astral-sh/ty) for type checking.
