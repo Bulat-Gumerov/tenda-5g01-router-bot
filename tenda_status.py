@@ -15,12 +15,12 @@ def get_tenda_status():
     try:
         if not session or not stok:
             print("\033[1;31m[!] Authentication Failed.\033[0m")
-            return
+            return False
 
         data = get_tenda_status_data(session, stok)
         if not data:
             print("\033[1;31m[!] Error: Could not retrieve or parse status data.\033[0m")
-            return
+            return False
 
         sim_info = data.get("simInfo")
         if not isinstance(sim_info, dict):
@@ -47,6 +47,7 @@ def get_tenda_status():
         print(f" \033[1;37mAccess Band:\033[0m      {access_band}")
         print(f" \033[1;37mInternet Status:\033[0m  {status_color}{internet_status.upper()}\033[0m")
         print("─" * 40 + "\n")
+        return True
     finally:
         # Close the session
         if session:
@@ -55,7 +56,8 @@ def get_tenda_status():
 
 if __name__ == "__main__":
     try:
-        get_tenda_status()
+        ok = get_tenda_status()
+        sys.exit(0 if ok else 1)
     except KeyboardInterrupt:
         print("\n\033[1;33m[!] Operation cancelled by user.\033[0m")
         sys.exit(0)

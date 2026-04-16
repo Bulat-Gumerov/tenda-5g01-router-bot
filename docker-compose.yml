@@ -1,0 +1,26 @@
+services:
+  tenda-5g-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tenda-5g-monitor:latest
+    container_name: tenda-5g-monitor
+    command: ["python", "tenda_stay_on_5g.py"]
+    env_file:
+      - .env
+    environment:
+      ROUTER_IP: ${ROUTER_IP:?ROUTER_IP is required}
+      ROUTER_PWD: ${ROUTER_PWD:?ROUTER_PWD is required}
+      SPEED_TEST_URL: ${SPEED_TEST_URL:-https://nbg1-speed.hetzner.com/100MB.bin}
+      APN_PROFILES_JSON: ${APN_PROFILES_JSON:-}
+      TENDA_CONFIG_PATH: ${TENDA_CONFIG_PATH:-}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
